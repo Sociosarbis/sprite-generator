@@ -1,7 +1,8 @@
 import React, { useCallback, useState, useRef } from 'react'
 import cls from 'classnames'
-import { Container, Grid, makeStyles, Paper, Button, AppBar, List, ListItem, Card } from '@material-ui/core'
+import { Container, Grid, makeStyles, Paper, Button, AppBar, List, ListItem, Switch, FormControlLabel } from '@material-ui/core'
 import Alert from '../component/alert'
+import InfoCopy from '../component/infoCopy'
 import * as pack from 'bin-pack'
 import { getImgFileDimension } from '../util'
 
@@ -15,6 +16,12 @@ const useStyles = makeStyles((theme) => ({
     },
     commonPadding: {
         padding: '20px 10px'
+    },
+    noWrap: {
+        flexWrap: 'nowrap'
+    },
+    commonMargin: {
+        marginLeft: '10px'
     },
     main: {
         wordBreak: 'break-all'
@@ -47,8 +54,7 @@ const useStyles = makeStyles((theme) => ({
         marginTop: '100px',
         padding: '10px 0',
         '& canvas': {
-            display: 'block',
-            visibility: 'hidden'
+            display: 'none'
         }
     },
     hiddenUploader: {
@@ -59,21 +65,14 @@ const useStyles = makeStyles((theme) => ({
     },
     imgPreviewPanel: {
         width: '100%',
-        overflow: 'hidden',
+        overflow: 'auto',
         boxSizing: 'border-box',
-        padding: '20px 10px'
+        padding: '20px 17px'
     },
     previewImg: {
         width: '100%',
         display: 'block',
         boxShadow: theme.shadows[1]
-    },
-    spriteVar: {
-        width: '100%',
-        marginTop: '10px'
-    },
-    var: {
-        wordBreak: 'break-all'
     },
     varListSegment: {
         backgroundColor: theme.palette.primary.dark,
@@ -93,10 +92,20 @@ const useStyles = makeStyles((theme) => ({
         color: '#fff',
         padding: '0 4px'
     },
+    size: {
+        backgroundColor: theme.palette.error.dark,
+        color: '#fff',
+        padding: '0 4px'
+    },
     varFileName: {
         backgroundColor: theme.palette.secondary.dark,
         color: '#fff',
         padding: '0 4px'
+    },
+    codeMirror: {
+        backgroundColor: 'black',
+        color: '#eee',
+        whiteSpace: 'pre-wrap'
     }
 
 }))
@@ -122,12 +131,17 @@ function generateErrorTips(file) {
     return [getFileTypeNotMatchTips, getTooBigFileTips].map(fn => fn(file)).filter(Boolean)
 }
 
+function round3(num) {
+    return Math.round(num * 1000) / 1000
+}
+
 export default function Home() {
     const classes = useStyles()
     const [files, setFiles] = useState({})
     const [errors, setErrors] = useState([])
-    const [varText, setText] = useState('')
+    const [varData, setData] = useState('')
     const [open, setOpen] = useState(false)
+    const [useRem, toggleRem] = useState(false)
     const handleDrop = useCallback((fs) => {
         const errorTips = []
         let filesWillAdd = Array.from(fs).filter((file) => {
@@ -151,21 +165,22 @@ export default function Home() {
     }, [files])
 
     const handleDelete = useCallback((name) => {
-     const newFiles = Object.assign({}, files)
-     delete newFiles[name]
-     setFiles(newFiles)   
+        const newFiles = Object.assign({}, files)
+        delete newFiles[name]
+        setFiles(newFiles)
     }, [files])
 
-    const [generatedImg, setImg] = useState('')
+    const [generatedImg, setImg] = useState({})
     const cvs = useRef(null)
-    const code = useRef(null)
-
+    const unit = useRem ? 75 : 1
     const handleGenerate = useCallback(() => {
-        const dataToPack = Object.keys(files).map((fileName) => ({
+        const fileKeys = Object.keys(files)
+        if (fileKeys.length === 0) return
+        const dataToPack = fileKeys.map((fileName) => ({
             name: fileName,
             width: files[fileName].img.width + 10,
             height: files[fileName].img.height + 10
-        })).sort((a, b) => b.width * b.height -a.width * a.height)
+        })).sort((a, b) => b.width * b.height - a.width * a.height)
         const result = pack(dataToPack, { inPlace: true })
         const canvas = cvs.current
         canvas.width = result.width
@@ -182,18 +197,26 @@ export default function Home() {
         rawData.forEach(layout => {
             ctx.drawImage(files[layout.name].img, layout.x, layout.y, layout.width, layout.height)
         })
-        setImg(canvas.toDataURL('image/png'))
-        setText(rawData.map(img => `<span class="${classes.varListSegment}"><span class="${classes.varFileName}">${img.name.replace(/\.[^.]*$/, '')}</span> <span class="${classes.pos}">${img.x}</span> <span class="${classes.pos}">${img.y}</span></span>`).join(','))
+        setImg({
+            src: canvas.toDataURL('image/png'),
+            width: result.width / unit,
+            height: result.height / unit
+        })
+        setData(rawData)
     }, [files, classes])
 
-    const handleCopy = useCallback(() => {
-        const selection = window.getSelection()
-        selection.selectAllChildren(code.current)
-        const result = document.execCommand('copy')
-        setErrors([result ? '复制成功' : '复制失败'])
-        setOpen(true)
-        
+    const handleUnitChange = useCallback((e) => {
+        toggleRem(e.target.checked)
     }, [])
+
+    const handleCopy = useCallback((isSuccess) => {
+        setErrors([isSuccess ? '复制成功' : '复制失败'])
+        setOpen(true)
+
+    }, [])
+
+    const unitStr = useRem ? 'rem' : 'px'
+
     return <Container className={classes.main} maxWidth="lg">
         <Alert onClose={() => setOpen(false)} errors={errors} open={open} />
         <Grid container>
@@ -204,7 +227,7 @@ export default function Home() {
                             <Grid className={classes.fillHeight} container direction="column">
                                 <AppBar position="static" className={classes.toolHeader}>拖拽或上传文件&nbsp;
                                         <Button color="default" variant="contained" size="small">点击上传<input onChange={(e) => handleDrop(e.target.files)} className={classes.hiddenUploader} type="file" accept="image/*" multiple></input></Button>
-                                        <Button color="default" variant="contained" size="small" onClick={() => setFiles([])}>清空列表</Button>
+                                    <Button color="default" variant="contained" size="small" onClick={() => setFiles([])}>清空列表</Button>
                                 </AppBar>
                                 <Paper className={classes.fillHeight} onDragOver={preventDefault} onDrop={(e) => {
                                     preventDefault(e)
@@ -228,28 +251,64 @@ export default function Home() {
                                 <AppBar position="static" className={classes.toolHeader}>
                                     预览效果&nbsp;
                                         <Button color="default" variant="contained" size="small" onClick={handleGenerate}>生成</Button>
+                                    <FormControlLabel
+                                        className={classes.commonMargin}
+                                        control={<Switch checked={useRem} onChange={handleUnitChange} />}
+                                        label="使用REM"
+                                    ></FormControlLabel>
                                 </AppBar>
                                 <Paper className={cls([classes.fillHeight, classes.imgPreviewPanel])} variant="outlined">
-                                    <img alt="preview" className={classes.previewImg} src={generatedImg}/>
-                                    <canvas ref={cvs}/>
+                                    <img alt="preview" className={classes.previewImg} src={generatedImg.src} />
+                                    {generatedImg.src ?
+                                        <InfoCopy title="图片大小" onComplete={handleCopy}><p>
+                                            <span className={classes.varListSegment}>
+                                                <span className={classes.varFileName}>{round3(generatedImg.width / unit)}</span>,<span className={classes.varFileName}>{round3(generatedImg.height / unit)}</span>
+                                            </span>
+                                        </p></InfoCopy> : null}
+                                    <canvas ref={cvs} />
                                 </Paper>
                             </Grid>
                         </Grid>
                     </Grid>
                 </Paper>
-                <Paper className={classes.spriteVar}>
-                    <AppBar position="static" className={classes.toolHeader}>图片位置信息</AppBar>
-                    <Grid className={classes.commonPadding} container spacing={3}>
-                        <Grid item xs={11}>
-                            <Card className={classes.var}>
-                                <p ref={code} dangerouslySetInnerHTML={{ __html: varText}}/>
-                            </Card>
-                        </Grid>
-                        <Grid item xs={1}>
-                            <Button color="primary" variant="outlined" onClick={handleCopy}>复制</Button>
-                        </Grid>
-                    </Grid>
-                </Paper>
+                {generatedImg.src ?
+                    <div >
+                        <InfoCopy title="图片位置信息" onComplete={handleCopy}>
+                            <p
+                                dangerouslySetInnerHTML={{
+                                    __html: varData ?
+                                        varData
+                                            .map(img => `<span class="${
+                                                classes.varListSegment}"><span class="${
+                                                classes.varFileName}">${img.name.replace(/\.[^.]*$/, '')}</span> <span class="${
+                                                classes.pos}">${round3(-img.x / unit)}</span> <span class="${
+                                                classes.pos}">${round3(-img.y / unit)}</span> <span class="${
+                                                classes.size}">${round3(img.width / unit)}</span> <span class="${
+                                                classes.size}">${round3(img.height / unit)}</span></span>`)
+                                            .join(',')
+                                        : ''
+                                }} />
+                        </InfoCopy>
+                        <InfoCopy title="SCSS模板" onComplete={handleCopy}>
+                            <pre className={classes.codeMirror} dangerouslySetInnerHTML={{
+                                    __html: (`@mixin load-icons($icons, $url, $size, $bg-size, $bg-size-y: null) {
+  @if not $bg-size-y {
+    $bg-size-y: $bg-size-x;
+  }
+  @each $name, $x, $y, $width in $icons {
+    $ratio: $size / $width;
+    $background-size: $ratio * $bg-size-x $ratio * $bg-size-y;
+    .icon-#{$name}_#{$size} {
+      background: url($url) $x * $ratio + ${unitStr} $y * $ratio + ${unitStr} no-repeat;
+      background-size: $background-size;
+    }
+  }
+}
+$icons: ${varData.map(img => `${img.name} ${round3(-img.x / unit)} ${round3(-img.y / unit)} ${round3(img.width / unit)} ${round3(img.height / unit)}`).join(', ')};
+@include load-icons($icons, '~@assets/icons.png', 40, ${round3(generatedImg.width / unit)}${unitStr}, ${round3(generatedImg.height / unit)}${unitStr});
+`).replace(/\n/g, '<br/>')}}></pre>
+                        </InfoCopy>
+                    </div> : null}
             </Grid>
         </Grid>
     </Container>
