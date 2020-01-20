@@ -3,6 +3,7 @@ import cls from 'classnames'
 import { Container, Grid, makeStyles, Paper, Button, AppBar, List, ListItem, Switch, FormControlLabel } from '@material-ui/core'
 import Alert from '../component/alert'
 import InfoCopy from '../component/infoCopy'
+import ExtraFeatures from '../component/extraFeatures'
 import * as pack from 'bin-pack'
 import { getImgFileDimension } from '../util'
 
@@ -291,25 +292,32 @@ export default function Home() {
                         </InfoCopy>
                         <InfoCopy title="SCSS模板" onComplete={handleCopy}>
                             <pre className={classes.codeMirror} dangerouslySetInnerHTML={{
-                                    __html: (`@mixin load-icons($icons, $url, $size, $bg-size, $bg-size-y: null) {
-  @if not $bg-size-y {
-    $bg-size-y: $bg-size-x;
-  }
-  @each $name, $x, $y, $width in $icons {
-    $ratio: $size / $width;
-    $background-size: $ratio * $bg-size-x $ratio * $bg-size-y;
-    .icon-#{$name}_#{$size} {
-      background: url($url) $x * $ratio + ${unitStr} $y * $ratio + ${unitStr} no-repeat;
-      background-size: $background-size;
+                                    __html: (`@mixin load-icons($icons, $url, $size, $bg-size-x, $bg-size-y: null) {
+    @if not $bg-size-y {
+        $bg-size-y: $bg-size-x;
     }
-  }
+    $size: round($size);
+    $norm-size: $size;
+    $unit: unit($bg-size-x);
+    @if $unit == 'rem' {
+        $norm-size: $norm-size / 75;
+    }
+    @each $name, $x, $y, $width in $icons {
+        $ratio: $norm-size / $width;
+        $background-size: $ratio * $bg-size-x $ratio * $bg-size-y;
+        .icon-#{$name}_#{$size} {
+        background: url($url) unquote($x * $ratio + $unit) unquote($y * $ratio + $unit) no-repeat;
+        background-size: $background-size;
+        }
+    }
 }
-$icons: ${varData.map(img => `${img.name} ${round3(-img.x / unit)} ${round3(-img.y / unit)} ${round3(img.width / unit)} ${round3(img.height / unit)}`).join(', ')};
+$icons: ${varData.map(img => `${img.name.replace(/\.[^.]*$/, '')} ${round3(-img.x / unit)} ${round3(-img.y / unit)} ${round3(img.width / unit)} ${round3(img.height / unit)}`).join(', ')};
 @include load-icons($icons, '~@assets/icons.png', 40, ${round3(generatedImg.width / unit)}${unitStr}, ${round3(generatedImg.height / unit)}${unitStr});
 `).replace(/\n/g, '<br/>')}}></pre>
                         </InfoCopy>
                     </div> : null}
             </Grid>
         </Grid>
+        <ExtraFeatures />
     </Container>
 }
