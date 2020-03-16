@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from 'react'
+import React, { useCallback, useState, useRef, useMemo } from 'react'
 import cls from 'classnames'
 import {
   Container,
@@ -9,8 +9,6 @@ import {
   AppBar,
   List,
   ListItem,
-  Switch,
-  FormControlLabel,
   TextField
 } from '@material-ui/core'
 import Alert from '../component/alert'
@@ -157,11 +155,12 @@ export default function Home() {
   const [errors, setErrors] = useState([])
   const [varData, setData] = useState('')
   const [open, setOpen] = useState(false)
-  const [useRem, toggleRem] = useState(false)
-  const [outputFilename, setOutputFilename] = useState('')
+  const [outputFilePath, setOutputFilePath] = useState('')
+
+  const normalizedOutputFilePath = outputFilePath || 'assets/icon'
 
   const handleInput = useCallback(e => {
-    setOutputFilename(e.target.value)
+    setOutputFilePath(e.target.value)
   }, [])
   const handleDrop = useCallback(
     fs => {
@@ -202,7 +201,6 @@ export default function Home() {
 
   const [generatedImg, setImg] = useState({})
   const cvs = useRef(null)
-  const unit = useRem ? 75 : 1
   const handleGenerate = useCallback(() => {
     const fileKeys = Object.keys(files)
     if (fileKeys.length === 0) return
@@ -238,37 +236,19 @@ export default function Home() {
     })
     setImg({
       src: canvas.toDataURL('image/png'),
-      width: result.width / unit,
-      height: result.height / unit
+      width: result.width,
+      height: result.height
     })
     setData(rawData)
-  }, [files, classes, unit])
+  }, [files])
 
-  const handleUnitChange = useCallback(e => {
-    toggleRem(e.target.checked)
-  }, [])
+  const outputFilename = useMemo(() => normalizedOutputFilePath.replace(/^.*?([^/\\]*)$/, '$1'), [normalizedOutputFilePath])
+
 
   const handleCopy = useCallback(isSuccess => {
     setErrors([isSuccess ? '复制成功' : '复制失败'])
     setOpen(true)
   }, [])
-
-  const unitStr = useRem ? 'rem' : 'px'
-
-  const outputScss = generatedImg.src
-    ? varData
-        .map(
-          item =>
-            `@mixin icon-${item.name}($width, $height) {\n` +
-            ` $ratio-x: $width / ${item.width * unit};\n` +
-            ` $ratio-y: $height / ${item.height * unit};\n` +
-            ` background-size: ${generatedImg.width} * $ratio-x + ${unitStr} ${generatedImg.height} * $ratio-y + ${unitStr}; \n` +
-            ` background-position: ${-item.x} * $ratio-x + ${unitStr} ${-item.y} * $ratio-y + ${unitStr};\n` +
-            ` background-image:  url(~${outputFilename || 'assets/icon'}.png);\n` +
-            `}`
-        )
-        .join('\n\n')
-    : ''
 
   return (
     <Container className={classes.main} maxWidth="lg">
@@ -356,13 +336,6 @@ export default function Home() {
                     >
                       生成
                     </Button>
-                    <FormControlLabel
-                      className={classes.commonMargin}
-                      control={
-                        <Switch checked={useRem} onChange={handleUnitChange} />
-                      }
-                      label="使用REM"
-                    ></FormControlLabel>
                   </AppBar>
                   <Paper
                     className={cls([
@@ -380,7 +353,7 @@ export default function Home() {
                         label="输出文件名"
                         onChange={handleInput}
                         id="ouput-filename"
-                        value={outputFilename}
+                        value={outputFilePath}
                         placeholder="输出文件名"
                       />
                     </Grid>
@@ -394,11 +367,11 @@ export default function Home() {
                         <p>
                           <span className={classes.varListSegment}>
                             <span className={classes.varFileName}>
-                              {round3(generatedImg.width / unit)}
+                              {round3(generatedImg.width)}
                             </span>
                             ,
                             <span className={classes.varFileName}>
-                              {round3(generatedImg.height / unit)}
+                              {round3(generatedImg.height)}
                             </span>
                           </span>
                         </p>
@@ -427,13 +400,13 @@ export default function Home() {
                                 /\.[^.]*$/,
                                 ''
                               )}</span> <span class="${classes.pos}">${round3(
-                                -img.x / unit
+                                -img.x
                               )}</span> <span class="${classes.pos}">${round3(
-                                -img.y / unit
+                                -img.y
                               )}</span> <span class="${classes.size}">${round3(
-                                img.width / unit
+                                img.width
                               )}</span> <span class="${classes.size}">${round3(
-                                img.height / unit
+                                img.height
                               )}</span></span>`
                           )
                           .join(',')
@@ -445,7 +418,16 @@ export default function Home() {
                 <pre
                   className={classes.codeMirror}
                   dangerouslySetInnerHTML={{
-                    __html: outputScss.replace(/\n/g, '<br/>')
+                    __html: (`$${outputFilename}-icons: ${varData.map(item => `${item.name} ${item.x} ${item.y} ${item.width} ${item.height},`).join('')};\n` +
+                    `@each $name, $x, $y, $width, $height in $${outputFilename}-icons {\n` +
+                    ` .icon-#{$name} {\n` +
+                    `   $ratio: 1 / $width;\n` +
+                    `   background-size: ${generatedImg.width} * $ratio + em ${generatedImg.height} * $ratio + em; \n` +
+                    `   background-position: -$x * $ratio + em -$y * $ratio + em;\n` +
+                    `   background-image:  url(~${normalizedOutputFilePath}.png);\n` +
+                    ` }\n` +  
+                    `}\n`  
+                    ).replace(/\n/g, '<br/>')
                   }}
                 ></pre>
               </InfoCopy>
