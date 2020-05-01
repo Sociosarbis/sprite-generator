@@ -421,10 +421,11 @@ export default function Home() {
                     __html: (`$${outputFilename}-icons: ${varData.map(item => `${item.name} ${item.x} ${item.y} ${item.width} ${item.height},`).join('')};\n` +
                     `@each $name, $x, $y, $width, $height in $${outputFilename}-icons {\n` +
                     ` .icon-#{$name} {\n` +
-                    `   $ratio: 1 / $width;\n` +
-                    `   background-size: ${generatedImg.width} * $ratio + em ${generatedImg.height} * $ratio + em; \n` +
-                    `   background-position: -$x * $ratio + em -$y * $ratio + em;\n` +
+                    `   $ratio: 1 / $width;\n\n` +
+                    `   height: $height / $width * 1em;` +  
+                    `   background-position: (-$x * $ratio) + 0em (-$y * $ratio) + 0em;\n` +
                     `   background-image:  url(~${normalizedOutputFilePath}.png);\n` +
+                    `   background-size: ${generatedImg.width} * $ratio + em ${generatedImg.height} * $ratio + em; \n` +
                     ` }\n` +  
                     `}\n`  
                     ).replace(/\n/g, '<br/>')
