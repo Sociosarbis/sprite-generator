@@ -20,6 +20,22 @@ function getImgDimension(src) {
     })
 }
 
+/**
+ * 
+ * @param {Blob} blob
+ * @param {string} path
+ */
+function downloadFile(blob, path) {
+    const a = document.createElement('a')
+    const url = URL.createObjectURL(blob)
+    a.setAttribute('href', url)
+    const filename = path.replace(/^.*?([^/]+)$/, '$1')
+    a.setAttribute('download', filename)
+    a.click()
+    URL.revokeObjectURL(url)
+}
+
 export {
-    getImgFileDimension
+    getImgFileDimension,
+    downloadFile
 }

@@ -15,7 +15,7 @@ import Alert from '../component/alert'
 import InfoCopy from '../component/infoCopy'
 import ExtraFeatures from '../component/extraFeatures'
 import * as pack from 'bin-pack'
-import { getImgFileDimension } from '../util'
+import { getImgFileDimension, downloadFile } from '../util'
 
 const useStyles = makeStyles(theme => ({
   fillHeight: {
@@ -35,7 +35,8 @@ const useStyles = makeStyles(theme => ({
     marginLeft: '10px'
   },
   main: {
-    wordBreak: 'break-all'
+    wordBreak: 'break-all',
+    minWidth: '930px'
   },
   fileListItem: {
     padding: '5px',
@@ -244,6 +245,16 @@ export default function Home() {
 
   const outputFilename = useMemo(() => normalizedOutputFilePath.replace(/^.*?([^/\\]*)$/, '$1'), [normalizedOutputFilePath])
 
+  const handleDownload = useCallback(() => {
+    if (!generatedImg.src) {
+      setErrors(['未生成图片'])
+      setOpen(true)
+    } else {
+      cvs.current.toBlob((blob) => {
+        downloadFile(blob, outputFilePath ? `${outputFilePath}.png` : 'sprite.png')
+      })
+    }
+  }, [generatedImg.src, outputFilePath])
 
   const handleCopy = useCallback(isSuccess => {
     setErrors([isSuccess ? '复制成功' : '复制失败'])
@@ -348,6 +359,7 @@ export default function Home() {
                       container
                       className={classes.filenameInput}
                       justify="flex-end"
+                      alignItems="flex-end"
                     >
                       <TextField
                         label="输出文件名"
@@ -356,6 +368,14 @@ export default function Home() {
                         value={outputFilePath}
                         placeholder="输出文件名"
                       />
+                      <Button
+                        color="default"
+                        variant="contained"
+                        size="small"
+                        onClick={handleDownload}
+                      >
+                        下载图片
+                      </Button>
                     </Grid>
                     <img
                       alt="preview"
