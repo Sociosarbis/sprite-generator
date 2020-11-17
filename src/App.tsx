@@ -1,17 +1,17 @@
 import React from 'react';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core'
-import { blue, grey, red, yellow } from '@material-ui/core/colors'
-import Home from './container/home'
+import { createMuiTheme, ThemeProvider } from '@material-ui/core';
+import { blue, grey, red, yellow } from '@material-ui/core/colors';
+import Home from './container/home';
 import './App.css';
 
 const theme = createMuiTheme({
   palette: {
     primary: blue,
     secondary: grey,
-    tips: yellow,
-    error: red
-  }
-})
+    warning: yellow,
+    error: red,
+  },
+});
 
 function App() {
   return (
