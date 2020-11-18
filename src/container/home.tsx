@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import cls from 'classnames';
 import {
   Container,
@@ -14,20 +14,10 @@ import {
 import Alert from '../component/alert';
 import InfoCopy from '../component/infoCopy';
 import ExtraFeatures from '../component/extraFeatures';
-import pack from 'bin-pack';
-import { getImgFileDimension, downloadFile } from '../util';
-
-type ImageData = {
-  name: string;
-  width: number;
-  height: number;
-  x?: number;
-  y?: number;
-};
-
-type OutputImage = { src?: string; width?: number; height?: number };
-
-type ProcessedImageFile = { img: HTMLImageElement; raw: File };
+import { downloadFile } from '../util';
+import useFileManager from 'src/hooks/useFileManager';
+import useErrorTips from 'src/hooks/useErrorTips';
+import useSpriteGenerator, { ImageData } from 'src/hooks/useSpriteGenerator';
 
 const useStyles = makeStyles((theme) => ({
   fillHeight: {
@@ -140,139 +130,79 @@ function preventDefault(e: React.SyntheticEvent) {
   e.preventDefault();
 }
 
-function getFileTypeNotMatchTips(file: File) {
-  if (!/^image/.test(file.type)) {
-    return `${file.name}不是图片文件`;
-  }
-}
-
-function getTooBigFileTips(file: File) {
-  if (file.size > 1000000) {
-    return `${file.name}文件过大，应使用小于1MB的文件`;
-  }
-}
-
-function generateErrorTips(file: File) {
-  return [getFileTypeNotMatchTips, getTooBigFileTips]
-    .map((fn) => fn(file))
-    .filter(Boolean);
-}
-
 function round3(num: number) {
   return Math.round(num * 1000) / 1000;
 }
 
+const OutputInfos: React.FC<{
+  onCopy: (isSuccess: number) => any;
+  varData: ImageData[] | null;
+  scss: string;
+}> = (props) => {
+  const classes = useStyles({});
+  const { onCopy, varData, scss } = props;
+  return (
+    <div>
+      <InfoCopy title="图片位置信息" onComplete={onCopy}>
+        <p
+          dangerouslySetInnerHTML={{
+            __html: varData
+              ? (varData as Required<ImageData>[])
+                  .map(
+                    (img) =>
+                      `<span class="${classes.varListSegment}"><span class="${
+                        classes.varFileName
+                      }">${img.name.replace(
+                        /\.[^.]*$/,
+                        '',
+                      )}</span> <span class="${classes.pos}">${round3(
+                        -img.x,
+                      )}</span> <span class="${classes.pos}">${round3(
+                        -img.y,
+                      )}</span> <span class="${classes.size}">${round3(
+                        img.width,
+                      )}</span> <span class="${classes.size}">${round3(
+                        img.height,
+                      )}</span></span>`,
+                  )
+                  .join(',')
+              : '',
+          }}
+        />
+      </InfoCopy>
+      <InfoCopy title="SCSS模板" onComplete={onCopy}>
+        <pre
+          className={classes.codeMirror}
+          dangerouslySetInnerHTML={{
+            __html: scss,
+          }}
+        ></pre>
+      </InfoCopy>
+    </div>
+  );
+};
+
 export default function Home() {
   const classes = useStyles({});
-  const [files, setFiles] = useState<Record<string, ProcessedImageFile>>({});
-  const [errors, setErrors] = useState<string[]>([]);
-  const [varData, setData] = useState<ImageData[] | null>(null);
-  const [open, setOpen] = useState(false);
-  const [outputFilePath, setOutputFilePath] = useState('');
 
-  const normalizedOutputFilePath = outputFilePath || 'assets/icon';
+  const { showErrors, errors, open, setOpen } = useErrorTips();
+  const { files, setFiles, handleUpload, handleDelete } = useFileManager({
+    onError: showErrors,
+  });
 
-  const handleInput = useCallback((e) => {
-    setOutputFilePath(e.target.value);
-  }, []);
-  const handleDrop = useCallback(
-    (fs: FileList) => {
-      const errorTips: string[] = [];
-      let filesWillAdd: File[] | ProcessedImageFile[] = Array.from(fs).filter(
-        (file) => {
-          const tips = generateErrorTips(file);
-          Array.prototype.push.apply(errorTips, tips);
-          if (tips.length) return false;
-          return true;
-        },
-      );
-      Promise.all(filesWillAdd.map(getImgFileDimension)).then((dims) => {
-        filesWillAdd = dims.map((dim, index) =>
-          Object.assign(dim, { raw: filesWillAdd[index] }),
-        ) as ProcessedImageFile[];
-        setFiles(
-          filesWillAdd.reduce(
-            (acc: Record<string, ProcessedImageFile>, file) => {
-              acc[file.raw.name] = file;
-              return acc;
-            },
-            Object.assign({}, files),
-          ),
-        );
-        if (errorTips.length) {
-          setErrors(errorTips);
-          setOpen(true);
-        }
-      });
-    },
-    [files],
-  );
-
-  const handleDelete = useCallback(
-    (name: string) => {
-      const newFiles: Record<string, ProcessedImageFile> = Object.assign(
-        {},
-        files,
-      );
-      delete newFiles[name];
-      setFiles(newFiles);
-    },
-    [files],
-  );
-
-  const [generatedImg, setImg] = useState<OutputImage>({});
-  const cvs = useRef<HTMLCanvasElement>(null);
-  const handleGenerate = useCallback(() => {
-    const fileKeys = Object.keys(files);
-    if (fileKeys.length === 0) return;
-    const dataToPack: ImageData[] = fileKeys
-      .map((fileName: string) => ({
-        name: fileName,
-        width: files[fileName].img.width + 10,
-        height: files[fileName].img.height + 10,
-      }))
-      .sort((a, b) => b.width * b.height - a.width * a.height);
-
-    const result = pack(dataToPack, { inPlace: true });
-    const canvas = cvs.current as HTMLCanvasElement;
-    canvas.width = result.width;
-    canvas.height = result.height;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    ctx.clearRect(0, 0, result.width, result.height);
-    const rawData = dataToPack.map((img) => ({
-      filename: img.name,
-      name: img.name.replace(/\.\S*?$/, ''),
-      width: img.width - 10,
-      height: img.height - 10,
-      x: (img.x as number) + 5,
-      y: (img.y as number) + 5,
-    }));
-    rawData.forEach((layout) => {
-      ctx.drawImage(
-        files[layout.filename].img,
-        layout.x,
-        layout.y,
-        layout.width,
-        layout.height,
-      );
-    });
-    setImg({
-      src: canvas.toDataURL('image/png'),
-      width: result.width,
-      height: result.height,
-    });
-    setData(rawData);
-  }, [files]);
-
-  const outputFilename = useMemo(
-    () => normalizedOutputFilePath.replace(/^.*?([^/\\]*)$/, '$1'),
-    [normalizedOutputFilePath],
-  );
+  const {
+    generatedImg,
+    outputFilePath,
+    cvs,
+    handleGenerate,
+    handleInput,
+    scss,
+    varData,
+  } = useSpriteGenerator(files);
 
   const handleDownload = useCallback(() => {
     if (!generatedImg.src) {
-      setErrors(['未生成图片']);
-      setOpen(true);
+      showErrors(['未生成图片']);
     } else {
       (cvs.current as HTMLCanvasElement).toBlob((blob) => {
         downloadFile(
@@ -281,12 +211,14 @@ export default function Home() {
         );
       });
     }
-  }, [generatedImg.src, outputFilePath]);
+  }, [generatedImg.src, outputFilePath, cvs, showErrors]);
 
-  const handleCopy = useCallback((isSuccess) => {
-    setErrors([isSuccess ? '复制成功' : '复制失败']);
-    setOpen(true);
-  }, []);
+  const handleCopy = useCallback(
+    (isSuccess) => {
+      showErrors([isSuccess ? '复制成功' : '复制失败']);
+    },
+    [showErrors],
+  );
 
   return (
     <Container className={classes.main} maxWidth="lg">
@@ -310,7 +242,9 @@ export default function Home() {
                     <Button color="default" variant="contained" size="small">
                       点击上传
                       <input
-                        onChange={(e) => handleDrop(e.target.files as FileList)}
+                        onChange={(e) =>
+                          handleUpload(e.target.files as FileList)
+                        }
                         className={classes.hiddenUploader}
                         type="file"
                         accept="image/*"
@@ -331,7 +265,7 @@ export default function Home() {
                     onDragOver={preventDefault}
                     onDrop={(e) => {
                       preventDefault(e);
-                      handleDrop(e.dataTransfer.files);
+                      handleUpload(e.dataTransfer.files);
                     }}
                     variant="outlined"
                   >
@@ -431,63 +365,7 @@ export default function Home() {
             </Grid>
           </Paper>
           {generatedImg.src ? (
-            <div>
-              <InfoCopy title="图片位置信息" onComplete={handleCopy}>
-                <p
-                  dangerouslySetInnerHTML={{
-                    __html: varData
-                      ? (varData as Required<ImageData>[])
-                          .map(
-                            (img) =>
-                              `<span class="${
-                                classes.varListSegment
-                              }"><span class="${
-                                classes.varFileName
-                              }">${img.name.replace(
-                                /\.[^.]*$/,
-                                '',
-                              )}</span> <span class="${classes.pos}">${round3(
-                                -img.x,
-                              )}</span> <span class="${classes.pos}">${round3(
-                                -img.y,
-                              )}</span> <span class="${classes.size}">${round3(
-                                img.width,
-                              )}</span> <span class="${classes.size}">${round3(
-                                img.height,
-                              )}</span></span>`,
-                          )
-                          .join(',')
-                      : '',
-                  }}
-                />
-              </InfoCopy>
-              <InfoCopy title="SCSS模板" onComplete={handleCopy}>
-                <pre
-                  className={classes.codeMirror}
-                  dangerouslySetInnerHTML={{
-                    __html: (
-                      `$${outputFilename}-icons: ${(varData as Required<
-                        ImageData
-                      >[])
-                        .map(
-                          (item) =>
-                            `${item.name} ${item.x} ${item.y} ${item.width} ${item.height},`,
-                        )
-                        .join('')};\n` +
-                      `@each $name, $x, $y, $width, $height in $${outputFilename}-icons {\n` +
-                      ` .icon-#{$name} {\n` +
-                      `   $ratio: 1 / $width;\n\n` +
-                      `   height: $height / $width * 1em;` +
-                      `   background-position: (-$x * $ratio) + 0em (-$y * $ratio) + 0em;\n` +
-                      `   background-image:  url(~${normalizedOutputFilePath}.png);\n` +
-                      `   background-size: ${generatedImg.width} * $ratio + em ${generatedImg.height} * $ratio + em; \n` +
-                      ` }\n` +
-                      `}\n`
-                    ).replace(/\n/g, '<br/>'),
-                  }}
-                ></pre>
-              </InfoCopy>
-            </div>
+            <OutputInfos onCopy={handleCopy} scss={scss} varData={varData} />
           ) : null}
         </Grid>
       </Grid>
