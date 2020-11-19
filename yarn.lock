@@ -1439,10 +1439,22 @@
   resolved "https://registry.npm.taobao.org/@types/classnames/download/@types/classnames-2.2.11.tgz#2521cc86f69d15c5b90664e4829d84566052c1cf"
   integrity sha1-JSHMhvadFcW5BmTkgp2EVmBSwc8=
 
+"@types/codemirror@^0.0.98":
+  version "0.0.98"
+  resolved "https://registry.npm.taobao.org/@types/codemirror/download/@types/codemirror-0.0.98.tgz#b35c7a4ab1fc1684b08a4e3eb65240020556ebfb"
+  integrity sha1-s1x6SrH8FoSwik4+tlJAAgVW6/s=
+  dependencies:
+    "@types/tern" "*"
+
 "@types/eslint-visitor-keys@^1.0.0":
   version "1.0.0"
   resolved "https://registry.npm.taobao.org/@types/eslint-visitor-keys/download/@types/eslint-visitor-keys-1.0.0.tgz?cache=0&sync_timestamp=1576807610792&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2F%40types%2Feslint-visitor-keys%2Fdownload%2F%40types%2Feslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
   integrity sha1-HuMNeVRMqE1o1LPNsK9PIFZj3S0=
+
+"@types/estree@*":
+  version "0.0.45"
+  resolved "https://registry.npm.taobao.org/@types/estree/download/@types/estree-0.0.45.tgz#e9387572998e5ecdac221950dab3e8c3b16af884"
+  integrity sha1-6Th1cpmOXs2sIhlQ2rPow7Fq+IQ=
 
 "@types/events@*":
   version "3.0.0"
@@ -1569,6 +1581,13 @@
   version "1.0.1"
   resolved "https://registry.npm.taobao.org/@types/stack-utils/download/@types/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
   integrity sha1-CoUdO9lkmPolwzq3J47TvWXwbD4=
+
+"@types/tern@*":
+  version "0.23.3"
+  resolved "https://registry.npm.taobao.org/@types/tern/download/@types/tern-0.23.3.tgz#4b54538f04a88c9ff79de1f6f94f575a7f339460"
+  integrity sha1-S1RTjwSojJ/3neH2+U9XWn8zlGA=
+  dependencies:
+    "@types/estree" "*"
 
 "@types/testing-library__dom@*", "@types/testing-library__dom@^6.0.0":
   version "6.11.0"
@@ -2949,6 +2968,11 @@ code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.npm.taobao.org/code-point-at/download/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
   integrity sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=
+
+codemirror@^5.58.2:
+  version "5.58.2"
+  resolved "https://registry.npm.taobao.org/codemirror/download/codemirror-5.58.2.tgz?cache=0&sync_timestamp=1603481865446&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Fcodemirror%2Fdownload%2Fcodemirror-5.58.2.tgz#ed54a1796de1498688bea1cdd4e9eeb187565d1b"
+  integrity sha1-7VSheW3hSYaIvqHN1OnusYdWXRs=
 
 collection-visit@^1.0.0:
   version "1.0.0"

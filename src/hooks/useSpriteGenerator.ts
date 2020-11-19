@@ -95,7 +95,7 @@ export default function useSpriteGenerator(
       `   background-size: ${generatedImg.width} * $ratio + em ${generatedImg.height} * $ratio + em; \n` +
       ` }\n` +
       `}\n`
-    ).replace(/\n/g, '<br/>');
+    );
   }, [generatedImg, outputFilename, normalizedOutputFilePath, varData]);
 
   return {

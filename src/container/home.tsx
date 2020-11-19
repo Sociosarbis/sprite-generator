@@ -12,6 +12,7 @@ import {
 } from '@material-ui/core';
 import Alert from '../component/alert';
 import InfoCopy from '../component/infoCopy';
+import CodeEditor from 'src/component/CodeEditor';
 import ExtraFeatures from '../component/extraFeatures';
 import { downloadFile } from '../util';
 import useFileManager from 'src/hooks/useFileManager';
@@ -37,10 +38,11 @@ const useStyles = makeStyles((theme) => ({
   },
   main: {
     wordBreak: 'break-all',
-    minWidth: '930px',
+    minWidth: '950px',
   },
   fileListItem: {
     padding: '5px',
+    fontSize: '16px',
     boxShadow: theme.shadows[1],
     '& .MuiGrid-item': {
       display: 'flex',
@@ -86,39 +88,6 @@ const useStyles = makeStyles((theme) => ({
     display: 'inline-block',
     boxShadow: theme.shadows[1],
   },
-  varListSegment: {
-    backgroundColor: theme.palette.primary.dark,
-    color: theme.palette.primary.contrastText,
-    marginLeft: '5px',
-    wordBreak: 'keep-all',
-    whiteSpace: 'nowrap',
-    lineHeight: 1.5,
-    borderRadius: '1em',
-    border: '1px solid transparent',
-    overflow: 'hidden',
-    display: 'inline-block',
-    boxShadow: theme.shadows[1],
-  },
-  pos: {
-    backgroundColor: theme.palette.success.dark,
-    color: '#fff',
-    padding: '0 4px',
-  },
-  size: {
-    backgroundColor: theme.palette.error.dark,
-    color: '#fff',
-    padding: '0 4px',
-  },
-  varFileName: {
-    backgroundColor: theme.palette.secondary.dark,
-    color: '#fff',
-    padding: '0 4px',
-  },
-  codeMirror: {
-    backgroundColor: 'black',
-    color: '#eee',
-    whiteSpace: 'pre-wrap',
-  },
   filenameInput: {
     marginBottom: '10px',
   },
@@ -137,44 +106,31 @@ const OutputInfos: React.FC<{
   varData: ImageData[] | null;
   scss: string;
 }> = (props) => {
-  const classes = useStyles({});
   const { onCopy, varData, scss } = props;
   return (
     <div>
       <InfoCopy title="图片位置信息" onComplete={onCopy}>
-        <p
-          dangerouslySetInnerHTML={{
-            __html: varData
+        <CodeEditor
+          readOnly={true}
+          value={
+            varData
               ? (varData as Required<ImageData>[])
                   .map(
                     (img) =>
-                      `<span class="${classes.varListSegment}"><span class="${
-                        classes.varFileName
-                      }">${img.name.replace(
-                        /\.[^.]*$/,
-                        '',
-                      )}</span> <span class="${classes.pos}">${round3(
+                      `${img.name.replace(/\.[^.]*$/, '')} ${round3(
                         -img.x,
-                      )}</span> <span class="${classes.pos}">${round3(
-                        -img.y,
-                      )}</span> <span class="${classes.size}">${round3(
-                        img.width,
-                      )}</span> <span class="${classes.size}">${round3(
+                      )} ${round3(-img.y)} ${round3(img.width)} ${round3(
                         img.height,
-                      )}</span></span>`,
+                      )}`,
                   )
-                  .join(',')
-              : '',
-          }}
+                  .join(',') + ';'
+              : ''
+          }
+          mode="sass"
         />
       </InfoCopy>
       <InfoCopy title="SCSS模板" onComplete={onCopy}>
-        <pre
-          className={classes.codeMirror}
-          dangerouslySetInnerHTML={{
-            __html: scss,
-          }}
-        ></pre>
+        <CodeEditor value={scss} mode="sass" />
       </InfoCopy>
     </div>
   );
@@ -273,7 +229,11 @@ export default function Home() {
                         <ListItem key={index}>
                           <Grid className={classes.fileListItem} container>
                             <Grid item xs={8}>
-                              {index + 1}：{fileName}
+                              <CodeEditor
+                                value={`# ${index + 1}：${fileName}`}
+                                mode="markdown"
+                                readOnly={true}
+                              />
                             </Grid>
                             <Grid item>
                               <Button
@@ -344,17 +304,13 @@ export default function Home() {
                     />
                     {generatedImg.src ? (
                       <InfoCopy title="图片大小" onComplete={handleCopy}>
-                        <p>
-                          <span className={classes.varListSegment}>
-                            <span className={classes.varFileName}>
-                              {round3(generatedImg.width as number)}
-                            </span>
-                            ,
-                            <span className={classes.varFileName}>
-                              {round3(generatedImg.height as number)}
-                            </span>
-                          </span>
-                        </p>
+                        <CodeEditor
+                          mode="markdown"
+                          readOnly={true}
+                          value={`# ${round3(
+                            generatedImg.width as number,
+                          )}, ${round3(generatedImg.height as number)}`}
+                        />
                       </InfoCopy>
                     ) : null}
                     <canvas ref={cvs} />
