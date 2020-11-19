@@ -13,12 +13,7 @@ const links = [
   },
 ];
 
-const useStyles = makeStyles({
-  fixTopLeft: {
-    position: 'fixed',
-    top: '20px',
-    left: '20px',
-  },
+const useStyles = makeStyles(() => ({
   commonPadding: {
     padding: '10px 20px',
   },
@@ -30,7 +25,10 @@ const useStyles = makeStyles({
       display: 'initial',
     },
   },
-});
+  borderRight: {
+    borderRight: '1px solid #eee',
+  },
+}));
 
 function isBigScreen() {
   return window.innerWidth > 1280;
@@ -49,36 +47,53 @@ export default function ExtraFeatures() {
       setDrawType(isBigScreen() ? 'permanent' : 'temporary');
     });
   }, []);
-  return (
-    <div>
-      {!showDrawer ? (
-        <Button
-          variant="contained"
-          color="primary"
-          className={cls(classes.fixTopLeft, classes.drawerButton)}
-          onClick={() => setDrawer(true)}
+
+  const Content = (
+    <div
+      className={cls(
+        'h-screen',
+        'flex-none',
+        'box-border',
+        drawerType === 'permanent' ? ['mr-2', classes.borderRight] : '',
+      )}
+    >
+      <div className={classes.commonPadding}>支援功能</div>
+      <Divider />
+      {links.map((li) => (
+        <Link
+          className={cls(classes.commonPadding, 'block')}
+          key={li.name}
+          href={li.href}
+          target={li.name}
         >
-          支援功能
-        </Button>
-      ) : null}
+          {li.name}
+        </Link>
+      ))}
+    </div>
+  );
+  return (
+    <>
+      {drawerType === 'temporary' ? (
+        <div className={cls(classes.commonPadding, 'flex-none', 'mr-2')}>
+          <Button
+            variant="contained"
+            color="primary"
+            className={classes.drawerButton}
+            onClick={() => setDrawer(true)}
+          >
+            支援功能
+          </Button>
+        </div>
+      ) : !showDrawer ? null : (
+        Content
+      )}
       <Drawer
         variant={drawerType}
         open={showDrawer}
         onClose={() => setDrawer(false)}
       >
-        <div className={classes.commonPadding}>支援功能</div>
-        <Divider />
-        {links.map((li) => (
-          <Link
-            className={classes.commonPadding}
-            key={li.name}
-            href={li.href}
-            target={li.name}
-          >
-            {li.name}
-          </Link>
-        ))}
+        {Content}
       </Drawer>
-    </div>
+    </>
   );
 }

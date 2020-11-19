@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import cls from 'classnames';
 import {
-  Container,
   Grid,
   makeStyles,
   Paper,
@@ -65,7 +64,6 @@ const useStyles = makeStyles((theme) => ({
   },
   toolContainer: {
     height: '560px',
-    marginTop: '100px',
     padding: '10px 0',
     '& canvas': {
       display: 'none',
@@ -85,7 +83,7 @@ const useStyles = makeStyles((theme) => ({
   },
   previewImg: {
     width: '100%',
-    display: 'block',
+    display: 'inline-block',
     boxShadow: theme.shadows[1],
   },
   varListSegment: {
@@ -221,7 +219,8 @@ export default function Home() {
   );
 
   return (
-    <Container className={classes.main} maxWidth="lg">
+    <div className={cls(classes.main, 'flex')}>
+      <ExtraFeatures />
       <Alert onClose={() => setOpen(false)} errors={errors} open={open} />
       <Grid container>
         <Grid item xs={10}>
@@ -339,7 +338,7 @@ export default function Home() {
                       </Button>
                     </Grid>
                     <img
-                      alt="preview"
+                      alt=""
                       className={classes.previewImg}
                       src={generatedImg.src}
                     />
@@ -369,7 +368,6 @@ export default function Home() {
           ) : null}
         </Grid>
       </Grid>
-      <ExtraFeatures />
-    </Container>
+    </div>
   );
 }
