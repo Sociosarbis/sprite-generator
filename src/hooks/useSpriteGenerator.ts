@@ -89,6 +89,7 @@ export default function useSpriteGenerator(
       `@each $name, $x, $y, $width, $height in $${outputFilename}-icons {\n` +
       ` .icon-#{$name} {\n` +
       `   $ratio: 1 / $width;\n\n` +
+      `   width: 1em;` +
       `   height: $height / $width * 1em;` +
       `   background-position: (-$x * $ratio) + 0em (-$y * $ratio) + 0em;\n` +
       `   background-image:  url(~${normalizedOutputFilePath}.png);\n` +
