@@ -91,6 +91,9 @@ const useStyles = makeStyles((theme) => ({
   filenameInput: {
     marginBottom: '10px',
   },
+  overflowAuto: {
+    overflow: 'auto',
+  },
 }));
 
 function preventDefault(e: React.SyntheticEvent) {
@@ -216,6 +219,9 @@ export default function Home() {
                     </Button>
                   </AppBar>
                   <Paper
+                    classes={{
+                      root: cls(classes.fillHeight, classes.overflowAuto),
+                    }}
                     className={classes.fillHeight}
                     onDragOver={preventDefault}
                     onDrop={(e) => {

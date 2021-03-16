@@ -10,6 +10,7 @@ import 'codemirror/mode/sass/sass';
 
 const useStyles = makeStyles({
   editor: {
+    width: '100%',
     '& .CodeMirror': {
       height: 'auto',
     },
@@ -32,10 +33,6 @@ const CodeEditor: React.FC<{
       readOnly,
       theme: 'material-darker',
       mode,
-    });
-    cm.current.on('copy', (inst, e) => {
-      e.preventDefault();
-      e.clipboardData && e.clipboardData.setData('text/plain', inst.getValue());
     });
   });
   return <div className={classes.editor} ref={editor} />;
