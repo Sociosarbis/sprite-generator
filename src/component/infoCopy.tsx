@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, RefObject } from 'react';
 import cls from 'classnames';
 import {
   Grid,
@@ -8,6 +8,7 @@ import {
   AppBar,
   Card,
 } from '@material-ui/core';
+import { CodeMirror } from './CodeEditor';
 
 const useStyles = makeStyles((theme) => ({
   commonPadding: {
@@ -68,13 +69,23 @@ const useStyles = makeStyles((theme) => ({
 const InfoCopy: React.FC<{
   onComplete?: (result: number) => any;
   title: string;
+  child: (ref: RefObject<CodeMirror>) => React.ReactNode;
 }> = (props) => {
-  const code = useRef<Node>(null);
-  const { onComplete, children, title } = props;
+  const editorRef = useRef<CodeMirror>(null);
+  const { onComplete, child, title } = props;
   const handleCopy = useCallback(() => {
-    const selection = window.getSelection();
-    if (selection) {
-      selection.selectAllChildren(code.current as Node);
+    if (editorRef.current) {
+      document.addEventListener(
+        'copy',
+        (e) => {
+          e.preventDefault();
+          e.clipboardData?.setData(
+            'text/plain',
+            editorRef.current?.getValue() || '',
+          );
+        },
+        { once: true },
+      );
       const result = document.execCommand('copy');
       onComplete && onComplete(result ? 1 : 0);
     }
@@ -91,9 +102,7 @@ const InfoCopy: React.FC<{
         spacing={3}
       >
         <Grid item xs={11}>
-          <Card ref={code} className={classes.var}>
-            {children}
-          </Card>
+          <Card className={classes.var}>{child(editorRef)}</Card>
         </Grid>
         <Grid item>
           <Button color="primary" variant="outlined" onClick={handleCopy}>

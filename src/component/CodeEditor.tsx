@@ -1,5 +1,5 @@
 import CodeMirror from 'codemirror';
-import React from 'react';
+import React, { forwardRef, MutableRefObject, useEffect } from 'react';
 import { useRef } from 'react';
 import { useMount } from 'src/hooks/lifeCycles';
 import { makeStyles } from '@material-ui/core';
@@ -17,14 +17,25 @@ const useStyles = makeStyles({
   },
 });
 
-const CodeEditor: React.FC<{
-  value: string;
-  mode: string;
-  readOnly?: boolean;
-}> = ({ value, mode, readOnly }) => {
+export type CodeMirror = ReturnType<typeof CodeMirror>;
+
+const CodeEditor = forwardRef<
+  CodeMirror,
+  {
+    value: string;
+    mode: string;
+    readOnly?: boolean;
+  }
+>(({ value, mode, readOnly }, ref) => {
   const classes = useStyles({});
   const editor = useRef<HTMLDivElement>(null);
   const cm = useRef<ReturnType<typeof CodeMirror>>();
+
+  useEffect(() => {
+    if (cm.current) {
+      cm.current.setValue(value);
+    }
+  }, [cm, value]);
 
   useMount(() => {
     cm.current = CodeMirror(editor.current as HTMLElement, {
@@ -34,8 +45,11 @@ const CodeEditor: React.FC<{
       theme: 'material-darker',
       mode,
     });
+    if (ref) {
+      (ref as MutableRefObject<CodeMirror>).current = cm.current;
+    }
   });
   return <div className={classes.editor} ref={editor} />;
-};
+});
 
 export default CodeEditor;

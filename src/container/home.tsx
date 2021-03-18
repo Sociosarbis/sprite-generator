@@ -112,29 +112,36 @@ const OutputInfos: React.FC<{
   const { onCopy, varData, scss } = props;
   return (
     <div>
-      <InfoCopy title="图片位置信息" onComplete={onCopy}>
-        <CodeEditor
-          readOnly={true}
-          value={
-            varData
-              ? (varData as Required<ImageData>[])
-                  .map(
-                    (img) =>
-                      `${img.name.replace(/\.[^.]*$/, '')} ${round3(
-                        -img.x,
-                      )} ${round3(-img.y)} ${round3(img.width)} ${round3(
-                        img.height,
-                      )}`,
-                  )
-                  .join(',') + ';'
-              : ''
-          }
-          mode="sass"
-        />
-      </InfoCopy>
-      <InfoCopy title="SCSS模板" onComplete={onCopy}>
-        <CodeEditor value={scss} mode="sass" />
-      </InfoCopy>
+      <InfoCopy
+        title="图片位置信息"
+        onComplete={onCopy}
+        child={(ref) => (
+          <CodeEditor
+            ref={ref}
+            readOnly={true}
+            value={
+              varData
+                ? (varData as Required<ImageData>[])
+                    .map(
+                      (img) =>
+                        `${img.name.replace(/\.[^.]*$/, '')} ${round3(
+                          -img.x,
+                        )} ${round3(-img.y)} ${round3(img.width)} ${round3(
+                          img.height,
+                        )}`,
+                    )
+                    .join(',') + ';'
+                : ''
+            }
+            mode="sass"
+          />
+        )}
+      ></InfoCopy>
+      <InfoCopy
+        title="SCSS模板"
+        onComplete={onCopy}
+        child={(ref) => <CodeEditor ref={ref} value={scss} mode="sass" />}
+      ></InfoCopy>
     </div>
   );
 };
@@ -309,15 +316,20 @@ export default function Home() {
                       src={generatedImg.src}
                     />
                     {generatedImg.src ? (
-                      <InfoCopy title="图片大小" onComplete={handleCopy}>
-                        <CodeEditor
-                          mode="markdown"
-                          readOnly={true}
-                          value={`# ${round3(
-                            generatedImg.width as number,
-                          )}, ${round3(generatedImg.height as number)}`}
-                        />
-                      </InfoCopy>
+                      <InfoCopy
+                        title="图片大小"
+                        onComplete={handleCopy}
+                        child={(ref) => (
+                          <CodeEditor
+                            ref={ref}
+                            mode="markdown"
+                            readOnly={true}
+                            value={`# ${round3(
+                              generatedImg.width as number,
+                            )}, ${round3(generatedImg.height as number)}`}
+                          />
+                        )}
+                      ></InfoCopy>
                     ) : null}
                     <canvas ref={cvs} />
                   </Paper>
