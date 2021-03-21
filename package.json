@@ -7,6 +7,7 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
+    "axios": "^0.21.1",
     "bin-pack": "^1.0.2",
     "classnames": "^2.2.6",
     "codemirror": "^5.58.2",
@@ -20,6 +21,7 @@
   "scripts": {
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
+    "build:function": "tsc --build tsconfig.function.json",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"
   },
