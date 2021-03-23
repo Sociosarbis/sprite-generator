@@ -1,11 +1,7 @@
-function getImgFileDimension(file: File) {
-  const fileReader = new FileReader();
-  fileReader.readAsDataURL(file);
-  return new Promise<string>((res) => {
-    fileReader.onloadend = () => {
-      res(fileReader.result as string);
-    };
-  }).then(getImgDimension);
+import axios from 'axios';
+
+async function urlToBlob(url: string): Promise<Blob> {
+  return (await axios.get(url, { responseType: 'blob' })).data;
 }
 
 function getImgDimension(src: string): Promise<{ img: HTMLImageElement }> {
@@ -20,6 +16,16 @@ function getImgDimension(src: string): Promise<{ img: HTMLImageElement }> {
   });
 }
 
+function getImgFileDimension(file: File) {
+  const fileReader = new FileReader();
+  fileReader.readAsDataURL(file);
+  return new Promise<string>((res) => {
+    fileReader.onloadend = () => {
+      res(fileReader.result as string);
+    };
+  }).then(getImgDimension);
+}
+
 function downloadFile(blob: Blob, path: string) {
   const a = document.createElement('a');
   const url = URL.createObjectURL(blob);
@@ -30,4 +36,4 @@ function downloadFile(blob: Blob, path: string) {
   URL.revokeObjectURL(url);
 }
 
-export { getImgFileDimension, downloadFile };
+export { getImgFileDimension, downloadFile, urlToBlob };

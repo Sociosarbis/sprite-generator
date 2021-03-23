@@ -14,10 +14,11 @@ import Alert from '../component/alert';
 import InfoCopy from '../component/infoCopy';
 import CodeEditor from 'src/component/CodeEditor';
 import ExtraFeatures from '../component/extraFeatures';
-import { downloadFile } from '../util';
+import { downloadFile, urlToBlob } from '../util';
 import useFileManager from 'src/hooks/useFileManager';
 import useErrorTips from 'src/hooks/useErrorTips';
 import useSpriteGenerator, { ImageData } from 'src/hooks/useSpriteGenerator';
+import api from 'src/apis';
 
 const useStyles = makeStyles((theme) => ({
   fillHeight: {
@@ -157,6 +158,7 @@ export default function Home() {
   const {
     generatedImg,
     outputFilePath,
+    setImg,
     cvs,
     handleGenerate,
     handleInput,
@@ -164,18 +166,30 @@ export default function Home() {
     varData,
   } = useSpriteGenerator(files);
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     if (!generatedImg.src) {
       showErrors(['未生成图片']);
     } else {
-      (cvs.current as HTMLCanvasElement).toBlob((blob) => {
-        downloadFile(
-          blob as Blob,
-          outputFilePath ? `${outputFilePath}.png` : 'sprite.png',
-        );
-      });
+      const blob = await urlToBlob(generatedImg.src);
+      downloadFile(
+        blob,
+        outputFilePath ? `${outputFilePath}.png` : 'sprite.png',
+      );
     }
-  }, [generatedImg.src, outputFilePath, cvs, showErrors]);
+  }, [generatedImg.src, outputFilePath, showErrors]);
+
+  const compress = useCallback(async () => {
+    if (generatedImg.src) {
+      const blob = await urlToBlob(generatedImg.src);
+      const res = await api.compress(blob);
+      setImg(
+        Object.assign({}, generatedImg, {
+          compressed: true,
+          src: res.output.url,
+        }),
+      );
+    }
+  }, [generatedImg, setImg]);
 
   const handleCopy = useCallback(
     (isSuccess) => {
@@ -290,9 +304,8 @@ export default function Home() {
                   >
                     <Grid
                       container
+                      direction="column"
                       className={classes.filenameInput}
-                      justify="flex-end"
-                      alignItems="flex-end"
                     >
                       <TextField
                         label="输出文件名"
@@ -301,14 +314,28 @@ export default function Home() {
                         value={outputFilePath}
                         placeholder="输出文件名"
                       />
-                      <Button
-                        color="default"
-                        variant="contained"
-                        size="small"
-                        onClick={handleDownload}
-                      >
-                        下载图片
-                      </Button>
+                      {generatedImg.src ? (
+                        <div className={classes.commonPadding}>
+                          <Button
+                            color="default"
+                            variant="contained"
+                            size="small"
+                            onClick={handleDownload}
+                          >
+                            下载图片
+                          </Button>
+                          <Button
+                            color="default"
+                            disabled={generatedImg.compressed}
+                            classes={{ root: classes.commonMargin }}
+                            variant="contained"
+                            size="small"
+                            onClick={compress}
+                          >
+                            压缩
+                          </Button>
+                        </div>
+                      ) : null}
                     </Grid>
                     <img
                       alt=""

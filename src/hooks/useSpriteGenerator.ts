@@ -2,7 +2,12 @@ import { useCallback, useState, useRef, useMemo } from 'react';
 import { ProcessedImageFile } from './useFileManager';
 import pack from 'bin-pack';
 
-type OutputImage = { src?: string; width?: number; height?: number };
+type OutputImage = Partial<{
+  src: string;
+  width: number;
+  height: number;
+  compressed: boolean;
+}>;
 
 export type ImageData = {
   name: string;
@@ -73,6 +78,7 @@ export default function useSpriteGenerator(
       src: canvas.toDataURL('image/png'),
       width: result.width,
       height: result.height,
+      compressed: false,
     });
     setData(rawData);
   }, [files]);
@@ -103,6 +109,7 @@ export default function useSpriteGenerator(
     cvs,
     scss,
     varData,
+    setImg,
     handleGenerate,
     handleInput,
   };
