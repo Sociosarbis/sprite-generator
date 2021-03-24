@@ -19,6 +19,7 @@ import useFileManager from 'src/hooks/useFileManager';
 import useErrorTips from 'src/hooks/useErrorTips';
 import useSpriteGenerator, { ImageData } from 'src/hooks/useSpriteGenerator';
 import api from 'src/apis';
+import { useLoading } from 'src/component/Loading';
 
 const useStyles = makeStyles((theme) => ({
   fillHeight: {
@@ -155,6 +156,8 @@ export default function Home() {
     onError: showErrors,
   });
 
+  const { Loading, setLoading } = useLoading();
+
   const {
     generatedImg,
     outputFilePath,
@@ -180,8 +183,10 @@ export default function Home() {
 
   const compress = useCallback(async () => {
     if (generatedImg.src) {
+      setLoading(true);
       const blob = await urlToBlob(generatedImg.src);
       const res = await api.compress(blob);
+      setLoading(false);
       setImg(
         Object.assign({}, generatedImg, {
           compressed: true,
@@ -189,7 +194,7 @@ export default function Home() {
         }),
       );
     }
-  }, [generatedImg, setImg]);
+  }, [generatedImg, setImg, setLoading]);
 
   const handleCopy = useCallback(
     (isSuccess) => {
@@ -369,6 +374,7 @@ export default function Home() {
           ) : null}
         </Grid>
       </Grid>
+      <Loading />
     </div>
   );
 }
