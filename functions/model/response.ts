@@ -10,6 +10,7 @@ class Response {
         : Buffer.from(JSON.stringify(data)).toString('utf-8');
     this.headers = {
       'content-type': 'application/json;charset=UTF-8',
+      'content-length': String(this.body.length),
     };
   }
 }

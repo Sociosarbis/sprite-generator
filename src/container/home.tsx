@@ -9,6 +9,7 @@ import {
   List,
   ListItem,
   TextField,
+  LinearProgress,
 } from '@material-ui/core';
 import Alert from '../component/alert';
 import InfoCopy from '../component/infoCopy';
@@ -18,6 +19,7 @@ import { downloadFile, urlToBlob } from '../util';
 import useFileManager from 'src/hooks/useFileManager';
 import useErrorTips from 'src/hooks/useErrorTips';
 import useSpriteGenerator, { ImageData } from 'src/hooks/useSpriteGenerator';
+import useProgress from 'src/hooks/useProgress';
 import api from 'src/apis';
 import { useLoading } from 'src/component/Loading';
 
@@ -181,11 +183,30 @@ export default function Home() {
     }
   }, [generatedImg.src, outputFilePath, showErrors]);
 
+  const { state: progressState, dispatch: progressDispatch } = useProgress();
+
   const compress = useCallback(async () => {
     if (generatedImg.src) {
       setLoading(true);
+      progressDispatch({
+        type: 'SET_VISIBILITY',
+        value: true,
+      });
+      progressDispatch({
+        type: 'SET_PROGRESS',
+        value: 0,
+      });
       const blob = await urlToBlob(generatedImg.src);
-      const res = await api.compress(blob);
+      const res = await api.compress(blob, (progress) => {
+        progressDispatch({
+          type: 'SET_PROGRESS',
+          value: progress,
+        });
+      });
+      progressDispatch({
+        type: 'SET_VISIBILITY',
+        value: false,
+      });
       setLoading(false);
       setImg(
         Object.assign({}, generatedImg, {
@@ -194,7 +215,7 @@ export default function Home() {
         }),
       );
     }
-  }, [generatedImg, setImg, setLoading]);
+  }, [generatedImg, setImg, setLoading, progressDispatch]);
 
   const handleCopy = useCallback(
     (isSuccess) => {
@@ -320,26 +341,36 @@ export default function Home() {
                         placeholder="输出文件名"
                       />
                       {generatedImg.src ? (
-                        <div className={classes.commonPadding}>
-                          <Button
-                            color="default"
-                            variant="contained"
-                            size="small"
-                            onClick={handleDownload}
-                          >
-                            下载图片
-                          </Button>
-                          <Button
-                            color="default"
-                            disabled={generatedImg.compressed}
-                            classes={{ root: classes.commonMargin }}
-                            variant="contained"
-                            size="small"
-                            onClick={compress}
-                          >
-                            压缩
-                          </Button>
-                        </div>
+                        <>
+                          <div className={classes.commonPadding}>
+                            <Button
+                              color="default"
+                              variant="contained"
+                              size="small"
+                              onClick={handleDownload}
+                            >
+                              下载图片
+                            </Button>
+                            <Button
+                              color="default"
+                              disabled={generatedImg.compressed}
+                              classes={{ root: classes.commonMargin }}
+                              variant="contained"
+                              size="small"
+                              onClick={compress}
+                            >
+                              压缩
+                            </Button>
+                          </div>
+                          {progressState.show ? (
+                            <div className={classes.commonPadding}>
+                              <LinearProgress
+                                variant="determinate"
+                                value={progressState.progress}
+                              />
+                            </div>
+                          ) : null}
+                        </>
                       ) : null}
                     </Grid>
                     <img

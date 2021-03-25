@@ -4,10 +4,6 @@ import { Drawer, Button, Link, Divider, makeStyles } from '@material-ui/core';
 
 const links = [
   {
-    name: '图片压缩',
-    href: 'https://tinypng.com/',
-  },
-  {
     name: 'SCSS转CSS',
     href: 'https://www.sassmeister.com/',
   },
