@@ -4,3 +4,7 @@
   NETLIFY = "true"
 [dev]
   functions = "netlify/functions"
+[[redirects]]
+  from = "/ssr"
+  to = "/.netlify/functions/ssr"
+  status = 200

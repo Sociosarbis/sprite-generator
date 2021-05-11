@@ -27,7 +27,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 function isBigScreen() {
-  return window.innerWidth > 1280;
+  return global.window ? window.innerWidth > 1280 : true;
 }
 export default function ExtraFeatures() {
   const classes = useStyles({});

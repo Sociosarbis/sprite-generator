@@ -1,25 +1,17 @@
-import React from 'react';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core';
-import { blue, grey, red, yellow } from '@material-ui/core/colors';
+import React, { useEffect } from 'react';
 import Home from './container/home';
+import './index.css';
 import './App.css';
 import 'src/styles/base.scss';
 
-const theme = createMuiTheme({
-  palette: {
-    primary: blue,
-    secondary: grey,
-    warning: yellow,
-    error: red,
-  },
-});
-
 function App() {
-  return (
-    <ThemeProvider theme={theme}>
-      <Home />
-    </ThemeProvider>
-  );
+  useEffect(() => {
+    const jssStyles = document.querySelector('#jss-server-side');
+    if (jssStyles) {
+      jssStyles.parentElement?.removeChild(jssStyles);
+    }
+  }, []);
+  return <Home />;
 }
 
 export default App;

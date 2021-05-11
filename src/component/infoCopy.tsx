@@ -8,7 +8,7 @@ import {
   AppBar,
   Card,
 } from '@material-ui/core';
-import { CodeMirror } from './CodeEditor';
+import { Editor } from 'codemirror';
 
 const useStyles = makeStyles((theme) => ({
   commonPadding: {
@@ -69,9 +69,9 @@ const useStyles = makeStyles((theme) => ({
 const InfoCopy: React.FC<{
   onComplete?: (result: number) => any;
   title: string;
-  child: (ref: RefObject<CodeMirror>) => React.ReactNode;
+  child: (ref: RefObject<Editor>) => React.ReactNode;
 }> = (props) => {
-  const editorRef = useRef<CodeMirror>(null);
+  const editorRef = useRef<Editor>(null);
   const { onComplete, child, title } = props;
   const handleCopy = useCallback(() => {
     if (editorRef.current) {
