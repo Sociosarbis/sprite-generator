@@ -27,21 +27,24 @@ const useStyles = makeStyles(() => ({
 }));
 
 function isBigScreen() {
-  return global.window ? window.innerWidth > 1280 : true;
+  return typeof window !== 'undefined' ? window.innerWidth > 1280 : true;
 }
 export default function ExtraFeatures() {
   const classes = useStyles({});
-  const [showDrawer, setDrawer] = useState(isBigScreen());
+  const [showDrawer, setDrawer] = useState(false);
   const [drawerType, setDrawType] = useState<'permanent' | 'temporary'>(
-    isBigScreen() ? 'permanent' : 'temporary',
+    'temporary',
   );
   useEffect(() => {
-    window.addEventListener('resize', function () {
+    const handleResize = () => {
       if (isBigScreen()) {
         setDrawer(true);
       }
       setDrawType(isBigScreen() ? 'permanent' : 'temporary');
-    });
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const Content = (

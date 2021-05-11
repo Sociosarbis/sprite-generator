@@ -10,9 +10,8 @@ const serverAppBuild = path.join(__dirname, 'netlify/functions/ssr');
 
 const extendServerWebpackConfig = {
   entry: {
-    app: path.join(__dirname, 'src/entry-server.tsx'),
+    main: path.join(__dirname, 'src/entry-server.tsx'),
   },
-  mode: 'development',
   target: 'node',
   externals: [
     nodeExternals({
@@ -27,7 +26,10 @@ const extendServerWebpackConfig = {
     libraryTarget: 'commonjs2',
     filename: '[name].js',
   },
-  optimization: {},
+  optimization: {
+    splitChunks: false,
+    runtimeChunk: false,
+  },
   plugins: [],
 };
 
@@ -48,14 +50,13 @@ const serverMergeOptions = {
   customizeArray: (a, b, key) => {
     switch (key) {
       case 'plugins':
-        return a.filter((item) =>
-          serverPlugins.includes(item.constructor.name),
-        );
+        return a.filter((item) => {
+          return serverPlugins.includes(item.constructor.name);
+        });
     }
   },
   customizeObject: (a, b, key) => {
     switch (key) {
-      case 'optimization':
       case 'entry':
         return b;
     }

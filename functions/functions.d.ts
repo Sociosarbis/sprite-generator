@@ -8,7 +8,11 @@ declare namespace NetlifyFunction {
   };
 }
 
-declare module '*/ssr/app' {
+declare module '*/ssr/main' {
   import { ReactElement } from 'react';
-  export function createApp(): { app: ReactElement; css: string };
+  import { ServerStyleSheets } from '@material-ui/core/styles';
+  export function createApp(): {
+    app: ReactElement;
+    stylesheets: ServerStyleSheets;
+  };
 }

@@ -13,6 +13,6 @@ export function createApp() {
   );
   return {
     app,
-    css: sheets.toString(),
+    stylesheets: sheets,
   };
 }

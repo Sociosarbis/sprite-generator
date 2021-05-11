@@ -20,6 +20,7 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
+    "start:ssr": "cross-env REACT_APP_SSR=1 PORT=3001 yarn start",
     "build:ssr": "cross-env REACT_APP_SSR=1 yarn build:app",
     "build:app": "react-app-rewired build",
     "build": "yarn build:app && yarn build:ssr && yarn build:function",
