@@ -7,4 +7,5 @@
 [[redirects]]
   from = "/ssr"
   to = "/.netlify/functions/ssr"
+  force = true
   status = 200
