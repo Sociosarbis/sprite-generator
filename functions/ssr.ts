@@ -32,11 +32,12 @@ async function handler() {
   const template: string = isDev
     ? (await axios.get('http://127.0.0.1:8888/index.html')).data
     : await fs.readFile(
-        join(process.env.LAMBDA_RUNTIME_DIR || '', 'build/index.html'),
+        join(process.env.LAMBDA_TASK_ROOT || '', '../../build/index.html'),
         {
           encoding: 'utf-8',
         },
       );
+  console.log(process.env);
   process.env.NODE_ENV = isDev ? 'development' : 'production';
   const html = renderToString(output.app);
   return new Response(
