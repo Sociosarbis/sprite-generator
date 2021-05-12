@@ -6,6 +6,8 @@ const aliasConfig = {
   src: path.join(__dirname, 'src'),
 };
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const serverAppBuild = path.join(__dirname, 'netlify/functions/ssr');
 
 const extendServerWebpackConfig = {
@@ -20,6 +22,9 @@ const extendServerWebpackConfig = {
   ],
   resolve: {
     alias: aliasConfig,
+  },
+  module: {
+    rules: [],
   },
   output: {
     path: serverAppBuild,
@@ -37,6 +42,7 @@ const extendClientWebpackConfig = {
   resolve: {
     alias: aliasConfig,
   },
+  plugins: [],
 };
 
 const serverPlugins = [
@@ -53,6 +59,22 @@ const serverMergeOptions = {
         return a.filter((item) => {
           return serverPlugins.includes(item.constructor.name);
         });
+      case 'module.rules':
+        if (isDev) {
+          a.forEach((rule) => {
+            if (rule.oneOf) {
+              rule.oneOf.forEach((branch) => {
+                if (branch.use) {
+                  const i = branch.use.indexOf(require.resolve('style-loader'));
+                  if (i !== -1) {
+                    branch.use[i] = require.resolve('vue-style-loader');
+                  }
+                }
+              });
+            }
+          });
+          return a;
+        }
     }
   },
   customizeObject: (a, b, key) => {

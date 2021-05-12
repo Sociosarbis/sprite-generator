@@ -5,7 +5,7 @@
 [dev]
   functions = "netlify/functions"
 [[redirects]]
-  from = "/ssr"
+  from = "/_ssr"
   to = "/.netlify/functions/ssr"
   force = true
   status = 200

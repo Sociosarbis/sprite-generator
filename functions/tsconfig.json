@@ -2,7 +2,7 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "module": "CommonJS",
-    "target": "ESNext",
+    "target": "ES6",
     "outDir": "../netlify/functions",
     "noEmit": false,
   },

@@ -10,6 +10,13 @@ function App() {
     if (jssStyles) {
       jssStyles.parentElement?.removeChild(jssStyles);
     }
+
+    if (process.env.NODE_ENV === 'development') {
+      const cssStyles = document.querySelectorAll('style[data-vue-ssr-id]');
+      for (let i = 0; i < cssStyles.length; i++) {
+        cssStyles[i].parentElement?.removeChild(cssStyles[i]);
+      }
+    }
   }, []);
   return <Home />;
 }
