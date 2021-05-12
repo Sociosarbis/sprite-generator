@@ -2,6 +2,7 @@ import axios from './helpers/axios';
 import { Response } from './model/response';
 
 async function handler(event: NetlifyFunction.Event) {
+  console.log(event.body.length);
   console.log(Buffer.from(event.body, 'base64').length);
   const data = (
     await axios.post(
