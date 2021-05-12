@@ -26,6 +26,7 @@ async function handler(event: NetlifyFunction.Event) {
       },
     )
   ).data;
+  console.log(data);
   const buffer: Buffer = (
     await axios.get(data.output.url, {
       responseType: 'arraybuffer',
