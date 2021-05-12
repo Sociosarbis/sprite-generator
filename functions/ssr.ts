@@ -1,5 +1,7 @@
 import { Response } from './model/response';
 import axios from 'axios';
+import { promises as fs } from 'fs';
+import { join } from 'path';
 import { renderToString } from 'react-dom/server';
 import { createApp } from './ssr/main';
 
@@ -26,13 +28,15 @@ async function handler() {
     );
     output = createApp();
   }
-  const template: string = (
-    await axios.get(
-      `${
-        isDev ? 'http://127.0.0.1:8888' : 'https://sprite-generator.netlify.app'
-      }/index.html`,
-    )
-  ).data;
+
+  const template: string = isDev
+    ? (await axios.get('http://127.0.0.1:8888/index.html')).data
+    : await fs.readFile(
+        join(process.env.LAMBDA_RUNTIME_DIR || '', 'build/index.html'),
+        {
+          encoding: 'utf-8',
+        },
+      );
   process.env.NODE_ENV = isDev ? 'development' : 'production';
   const html = renderToString(output.app);
   return new Response(
