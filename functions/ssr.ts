@@ -1,9 +1,9 @@
 import { Response } from './model/response';
 import axios from 'axios';
-import { promises as fs } from 'fs';
-import { join } from 'path';
 import { renderToString } from 'react-dom/server';
 import { createApp } from './ssr/main';
+
+let templateCache = '';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -28,18 +28,12 @@ async function handler() {
     );
     output = createApp();
   }
-  console.log(
-    await fs.readdir(`${process.env.LAMBDA_RUNTIME_DIR}/build` || ''),
-  );
-  console.log(await fs.readdir(`${process.env.LAMBDA_TASK_ROOT}/src` || ''));
-  const template: string = isDev
-    ? (await axios.get('http://127.0.0.1:8888/index.html')).data
-    : await fs.readFile(
-        join(process.env.LAMBDA_RUNTIME_DIR || '', 'build/index.html'),
-        {
-          encoding: 'utf-8',
-        },
-      );
+  const template: string =
+    templateCache || (await axios.get(`${process.env.URL}/index.html`)).data;
+  console.log('before', templateCache);
+  if (template !== templateCache) {
+    templateCache = template;
+  }
   process.env.NODE_ENV = isDev ? 'development' : 'production';
   const html = renderToString(output.app);
   return new Response(
