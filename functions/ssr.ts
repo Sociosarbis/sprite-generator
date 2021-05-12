@@ -28,7 +28,7 @@ async function handler() {
     );
     output = createApp();
   }
-
+  console.log(process.env);
   const template: string = isDev
     ? (await axios.get('http://127.0.0.1:8888/index.html')).data
     : await fs.readFile(
@@ -37,7 +37,6 @@ async function handler() {
           encoding: 'utf-8',
         },
       );
-  console.log(process.env);
   process.env.NODE_ENV = isDev ? 'development' : 'production';
   const html = renderToString(output.app);
   return new Response(
