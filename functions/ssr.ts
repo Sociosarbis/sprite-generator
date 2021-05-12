@@ -28,12 +28,14 @@ async function handler() {
     );
     output = createApp();
   }
-  console.log(await fs.readdir(process.env.LAMBDA_RUNTIME_DIR || ''));
-  console.log(await fs.readdir(process.env.LAMBDA_TASK_ROOT || ''));
+  console.log(
+    await fs.readdir(`${process.env.LAMBDA_RUNTIME_DIR}/build` || ''),
+  );
+  console.log(await fs.readdir(`${process.env.LAMBDA_TASK_ROOT}/src` || ''));
   const template: string = isDev
     ? (await axios.get('http://127.0.0.1:8888/index.html')).data
     : await fs.readFile(
-        join(process.env.LAMBDA_TASK_ROOT || '', 'build/index.html'),
+        join(process.env.LAMBDA_RUNTIME_DIR || '', 'build/index.html'),
         {
           encoding: 'utf-8',
         },
