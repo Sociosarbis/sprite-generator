@@ -2,8 +2,6 @@ import axios from './helpers/axios';
 import { Response } from './model/response';
 
 async function handler(event: NetlifyFunction.Event) {
-  console.log(event.body.length);
-  console.log(Buffer.from(event.body, 'base64').length);
   const data = (
     await axios.post(
       'https://tinypng.com/web/shrink',
@@ -24,11 +22,9 @@ async function handler(event: NetlifyFunction.Event) {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:42.0) Gecko/20100101 Firefox/42.0',
         },
-        validateStatus: null,
       },
     )
   ).data;
-  console.log(data);
   const buffer: Buffer = (
     await axios.get(data.output.url, {
       responseType: 'arraybuffer',
