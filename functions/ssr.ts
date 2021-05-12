@@ -3,8 +3,6 @@ import axios from 'axios';
 import { renderToString } from 'react-dom/server';
 import { createApp } from './ssr/main';
 
-let templateCache = '';
-
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
@@ -28,12 +26,8 @@ async function handler() {
     );
     output = createApp();
   }
-  const template: string =
-    templateCache || (await axios.get(`${process.env.URL}/index.html`)).data;
-  console.log('before', templateCache);
-  if (template !== templateCache) {
-    templateCache = template;
-  }
+  const template: string = (await axios.get(`${process.env.URL}/index.html`))
+    .data;
   process.env.NODE_ENV = isDev ? 'development' : 'production';
   const html = renderToString(output.app);
   return new Response(
